@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { getFiles, saveFile } from '../services/storage';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 
 const Settings = () => {
-    const [files, setFiles] = useState([]);
-
-    useEffect(() => {
-        const loadFiles = async () => {
-             const allFiles = await getFiles();
-             setFiles(allFiles || []);
-        };
-        loadFiles();
-    }, []);
+    const { files, addFile, resetData } = useData();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
@@ -27,8 +22,19 @@ const Settings = () => {
             // content: file
         };
 
-        await saveFile(newFile);
-        setFiles(prev => [...prev, newFile]);
+        await addFile(newFile);
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login');
+    };
+
+    const handleReset = async () => {
+        if (window.confirm("¿Estás seguro de que quieres borrar TODOS los datos? Esta acción no se puede deshacer.")) {
+            await resetData();
+            alert("Datos borrados. La aplicación se ha reiniciado.");
+        }
     };
 
     return (
@@ -47,7 +53,7 @@ const Settings = () => {
                     <div className="relative">
                         <div className="w-32 h-32 rounded-full p-1 border-2 border-primary overflow-hidden shadow-[0_0_20px_rgba(242,208,13,0.2)]">
                             <img
-                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBgE3XEPMRpEGu98BK90tXD6sxcHw5D1r8qRaJXm986SQP2OC2kPhg-p4_jxOALzRn-wqTlSEneJk26r7BL3RO_XX7bgFFhXpnGxLjgEkeBaukfjZq2QhLaHQjcEKuOsu0Q8d6Pao92p-NrPGdbsuzj5bkKL80eKnG-alnXQhwLLtHQRcMjlpL7xW_1yF3ewIO80hq8YWWNrQx2gJFBojngckOmm7VTR92_SWQ0ZHlwBtKmhElZNGH_z1MmWZHAXpzd7Zn6qP2c7Y8"
+                                src={user?.avatar || "https://lh3.googleusercontent.com/aida-public/AB6AXuBgE3XEPMRpEGu98BK90tXD6sxcHw5D1r8qRaJXm986SQP2OC2kPhg-p4_jxOALzRn-wqTlSEneJk26r7BL3RO_XX7bgFFhXpnGxLjgEkeBaukfjZq2QhLaHQjcEKuOsu0Q8d6Pao92p-NrPGdbsuzj5bkKL80eKnG-alnXQhwLLtHQRcMjlpL7xW_1yF3ewIO80hq8YWWNrQx2gJFBojngckOmm7VTR92_SWQ0ZHlwBtKmhElZNGH_z1MmWZHAXpzd7Zn6qP2c7Y8"}
                                 alt="Profile Avatar"
                                 className="w-full h-full object-cover rounded-full"
                             />
@@ -57,7 +63,7 @@ const Settings = () => {
                         </div>
                     </div>
                     <div className="mt-4 text-center">
-                        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">Adrián Valenzuela</h2>
+                        <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">{user?.name || "Usuario"}</h2>
                         <p className="text-primary/80 font-medium text-sm tracking-widest uppercase mt-1">Miembro Gold</p>
                     </div>
                 </section>
@@ -192,12 +198,18 @@ const Settings = () => {
                         </div>
                     </section>
 
-                    {/* Logout Button */}
-                    <section className="pt-6 pb-12">
-                        <NavLink to="/login" className="w-full py-4 border border-primary text-primary font-bold rounded-full hover:bg-primary hover:text-background-dark transition-all duration-300 flex items-center justify-center gap-2 group">
+                    {/* Actions Button */}
+                    <section className="pt-6 pb-12 space-y-4">
+                        <button onClick={handleReset} className="w-full py-4 border border-red-500 text-red-500 font-bold rounded-full hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center gap-2">
+                            <span className="material-icons-round">delete_forever</span>
+                            Borrar Todos los Datos
+                        </button>
+
+                        <button onClick={handleLogout} className="w-full py-4 border border-primary text-primary font-bold rounded-full hover:bg-primary hover:text-background-dark transition-all duration-300 flex items-center justify-center gap-2 group">
                             <span className="material-icons-round group-hover:translate-x-1 transition-transform">logout</span>
                             Cerrar Sesión
-                        </NavLink>
+                        </button>
+
                         <div className="mt-8 text-center">
                             <p className="text-[10px] text-gray-500 dark:text-gray-600 uppercase tracking-[0.3em]">GentleFinance Premium v2.4.1</p>
                         </div>

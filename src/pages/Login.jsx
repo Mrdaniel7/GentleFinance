@@ -1,7 +1,30 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
+    const { login } = useAuth();
+    const navigate = useNavigate();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!email || !password) {
+            setError('Por favor complete todos los campos');
+            return;
+        }
+
+        try {
+            await login(email, password);
+            navigate('/');
+        } catch (err) {
+            setError('Error al iniciar sesión');
+        }
+    };
+
     return (
         <div className="font-display bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden">
             {/* Background Decoration */}
@@ -23,13 +46,15 @@ const Login = () => {
                 </div>
 
                 {/* Form */}
-                <div className="w-full space-y-6">
+                <form onSubmit={handleSubmit} className="w-full space-y-6">
                     <div className="space-y-2">
                         <label htmlFor="email" className="text-[10px] uppercase tracking-widest text-primary/80 ml-1">Correo Electrónico</label>
                         <div className="relative">
                             <input
                                 id="email"
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                                 placeholder="usuario@gentle.com"
                                 className="w-full bg-transparent border border-primary/30 rounded-lg py-4 px-4 text-white placeholder:text-primary/30 focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none transition-all duration-300"
                             />
@@ -41,20 +66,24 @@ const Login = () => {
                             <input
                                 id="password"
                                 type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
                                 className="w-full bg-transparent border border-primary/30 rounded-lg py-4 px-4 text-white placeholder:text-primary/30 focus:border-primary focus:ring-1 focus:ring-primary/50 outline-none transition-all duration-300"
                             />
                         </div>
                     </div>
 
+                    {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+
                     <div className="flex justify-end">
                         <a href="#" className="text-xs text-primary/60 hover:text-primary transition-colors duration-200">¿Olvidó su contraseña?</a>
                     </div>
 
-                    <NavLink to="/" className="block w-full text-center gold-gradient text-background-dark font-bold py-4 rounded-lg shadow-lg shadow-primary/10 hover:brightness-110 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest text-sm">
+                    <button type="submit" className="block w-full text-center gold-gradient text-background-dark font-bold py-4 rounded-lg shadow-lg shadow-primary/10 hover:brightness-110 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest text-sm">
                         Iniciar Sesión
-                    </NavLink>
-                </div>
+                    </button>
+                </form>
 
                 {/* Biometrics */}
                 <div className="mt-12 flex flex-col items-center space-y-4">

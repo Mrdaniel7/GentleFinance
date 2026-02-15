@@ -1,7 +1,32 @@
-import React from 'react';
-import { NavLink } from 'react-router-dom';
+import React, { useState } from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const Signup = () => {
+    const { login } = useAuth(); // Assuming login works for signup too for simplicity in this mock
+    const navigate = useNavigate();
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        if (!email || !password || !name) {
+            setError('Por favor complete todos los campos');
+            return;
+        }
+
+        try {
+            // In a real app this would call a signup endpoint
+            await login(email, password);
+            navigate('/');
+        } catch (err) {
+            setError('Error al crear cuenta');
+        }
+    };
+
     return (
         <div className="bg-background-light dark:bg-background-dark font-display text-white min-h-screen relative overflow-x-hidden flex flex-col items-center p-6">
             {/* Background Subtle Glow */}
@@ -26,13 +51,18 @@ const Signup = () => {
                 </div>
 
                 {/* Form Section */}
-                <div className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     {/* Full Name */}
                     <div className="flex flex-col gap-2">
                         <label className="text-xs font-medium uppercase tracking-widest text-primary/70 ml-1">Nombre Completo</label>
                         <div className="relative">
                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 text-xl">person</span>
-                            <input className="w-full bg-primary/5 border border-primary/20 rounded-xl py-4 pl-12 pr-4 text-white placeholder-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="John Doe" type="text" />
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full bg-primary/5 border border-primary/20 rounded-xl py-4 pl-12 pr-4 text-white placeholder-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="John Doe"
+                            />
                         </div>
                     </div>
 
@@ -41,7 +71,12 @@ const Signup = () => {
                         <label className="text-xs font-medium uppercase tracking-widest text-primary/70 ml-1">Email</label>
                         <div className="relative">
                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 text-xl">mail</span>
-                            <input className="w-full bg-primary/5 border border-primary/20 rounded-xl py-4 pl-12 pr-4 text-white placeholder-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="vip@gentlefinance.com" type="email" />
+                            <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="w-full bg-primary/5 border border-primary/20 rounded-xl py-4 pl-12 pr-4 text-white placeholder-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="vip@gentlefinance.com"
+                            />
                         </div>
                     </div>
 
@@ -50,18 +85,25 @@ const Signup = () => {
                         <label className="text-xs font-medium uppercase tracking-widest text-primary/70 ml-1">Contraseña</label>
                         <div className="relative">
                             <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/40 text-xl">lock</span>
-                            <input className="w-full bg-primary/5 border border-primary/20 rounded-xl py-4 pl-12 pr-12 text-white placeholder-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="••••••••••••" type="password" />
-                            <button className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 hover:text-primary transition-colors">
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                className="w-full bg-primary/5 border border-primary/20 rounded-xl py-4 pl-12 pr-12 text-white placeholder-primary/30 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all" placeholder="••••••••••••"
+                            />
+                            <button type="button" className="absolute right-4 top-1/2 -translate-y-1/2 text-primary/40 hover:text-primary transition-colors">
                                 <span className="material-symbols-outlined text-xl">visibility</span>
                             </button>
                         </div>
                     </div>
 
+                    {error && <p className="text-red-500 text-xs text-center">{error}</p>}
+
                     {/* CTA Button */}
-                    <NavLink to="/" className="w-full block text-center gold-gradient text-background-dark font-bold py-4 rounded-xl mt-4 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+                    <button type="submit" className="w-full block text-center gold-gradient text-background-dark font-bold py-4 rounded-xl mt-4 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
                         Crear Cuenta
-                    </NavLink>
-                </div>
+                    </button>
+                </form>
 
                 {/* Divider */}
                 <div className="flex items-center gap-4 my-10">

@@ -1,31 +1,51 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useData } from '../context/DataContext';
 
 const Subscriptions = () => {
-    const [subscriptions] = useState([
-        { id: 1, name: 'Netflix Premium', category: 'Entretenimiento • Mensual', amount: 15.99, date: 'En 2 días', color: 'bg-black', icon: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBBxyvt5wcx8thpaURfTeLIUejndOYBpAAEKmIGcAhcP2krxId87UbQ-onNp5r0aqarB97u0ubjITwq0e1iYJAuQlvF5Kd_iSV-3EnzE0_OyDN4IUiWewHMcgr7POAtHpUnZHs-dmRNxkV5eEiY_cjFG-kFd95eYVJU_HnhavUHy_7pYF-PRC_6M5sN2ohFW7AQj2uOsuAdwASz7JVeTN-ipF0O87TAw5KHVYMh7TU-vyQggH7I2wu6rOR8DaAFL4ZHZoQBLyO9Ykg' },
-        { id: 2, name: 'Spotify Duo', category: 'Música • Mensual', amount: 12.99, date: '28 Oct', color: 'bg-[#1DB954]/10 text-[#1DB954]', icon: 'music_note', isIcon: true },
-        { id: 3, name: 'Adobe Creative Cloud', category: 'Software • Anual', amount: 59.99, date: '1 Nov', color: 'bg-white', icon: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDFpgq8bZcbOsC4TEWSVczjCQsy1dQp_l_uDaBCg5V5CElZnsvbsSNVJWL5PHbmraThzjt6gPGx-0JLIYTVW644WGeHmdoH4h884HmpLO9Ty0h68lRvPtaugF7G8dnSwf71dMBGV8b0V0bZ1__fGOxgkIjqWlPjpzUQNKW3FmDZhsokGrvU2UIT3p2ImSPKArLyQPn0PWM46UaMNfn2TDET5Wmx3E1QD30kQ4UhjDyOy5F3JQVQ4by_GJj4I-vTWaYAAAEG5w6nM5g' },
-    ]);
+    const { subscriptions, addSubscription, removeSubscription } = useData();
+    const [showModal, setShowModal] = useState(false);
 
-    const [otherServices] = useState([
-        { id: 1, name: 'iCloud+ 2TB', category: 'Almacenamiento • Mensual', amount: 9.99, date: '5 Nov', color: 'bg-blue-500/10 text-blue-400', icon: 'cloud', isIcon: true },
-        { id: 2, name: 'X Premium', category: 'Redes • Mensual', amount: 8.00, date: '12 Nov', color: 'bg-black text-white font-bold text-lg', icon: 'X', isText: true },
-    ]);
+    // Form State
+    const [name, setName] = useState('');
+    const [amount, setAmount] = useState('');
+    const [cycle, setCycle] = useState('Mensual');
+    const [date, setDate] = useState('');
+
+    const handleAddSubscription = async (e) => {
+        e.preventDefault();
+        if (!name || !amount) return;
+
+        await addSubscription({
+            name,
+            category: `Suscripción • ${cycle}`,
+            amount: parseFloat(amount),
+            date: date || 'Pendiente',
+            color: 'bg-primary/10 text-primary', // Default style
+            isIcon: true,
+            icon: 'calendar_today'
+        });
+
+        // Reset
+        setName('');
+        setAmount('');
+        setCycle('Mensual');
+        setDate('');
+        setShowModal(false);
+    };
+
+    const totalMonthly = subscriptions.reduce((sum, sub) => sum + parseFloat(sub.amount), 0);
 
     return (
-        <div className="flex flex-col h-full min-h-screen">
+        <div className="flex flex-col h-full min-h-screen relative">
             <header className="px-6 pt-8 pb-4">
                 <div className="flex justify-between items-center mb-6">
                     <NavLink to="/" className="p-2 -ml-2 rounded-full active:bg-primary/10 transition-colors">
                         <span className="material-icons-round text-primary">arrow_back_ios_new</span>
                     </NavLink>
                     <div className="flex gap-4">
-                         <button className="p-2 rounded-full bg-primary/10 text-primary">
-                            <span className="material-icons-round">calendar_today</span>
-                        </button>
-                        <button className="p-2 rounded-full bg-primary/10 text-primary">
-                            <span className="material-icons-round">more_horiz</span>
+                         <button onClick={() => setShowModal(true)} className="p-2 rounded-full bg-primary/10 text-primary">
+                            <span className="material-icons-round">add</span>
                         </button>
                     </div>
                 </div>
@@ -36,50 +56,28 @@ const Subscriptions = () => {
                         <p className="text-slate-400 text-sm">Gestiona tus pagos recurrentes</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/60 mb-1">Mensual Total</p>
-                        <p className="text-xl font-bold text-primary">$138.99</p>
+                        <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/60 mb-1">Total</p>
+                        <p className="text-xl font-bold text-primary">${totalMonthly.toLocaleString('en-US', { minimumFractionDigits: 2 })}</p>
                     </div>
-                </div>
-
-                 <div className="relative group mb-8">
-                    <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-primary/60 group-focus-within:text-primary transition-colors">search</span>
-                    <input
-                        type="text"
-                        placeholder="Buscar suscripción..."
-                        className="w-full bg-surface-dark/50 dark:bg-surface-dark border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-3.5 pl-12 pr-4 text-sm transition-all outline-none text-white placeholder-slate-500"
-                    />
                 </div>
 
                  <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
                     <button className="px-5 py-2 rounded-full bg-primary text-background-dark font-bold text-xs flex items-center gap-1 shrink-0">
                         <span className="material-icons-round text-sm">grid_view</span> Activas
                     </button>
-                    <button className="px-5 py-2 rounded-full border border-primary/30 dark:border-primary/20 bg-surface-dark/40 text-primary/80 font-semibold text-xs shrink-0 hover:border-primary transition-all">
-                        Pendientes
-                    </button>
-                    <button className="px-5 py-2 rounded-full border border-primary/30 dark:border-primary/20 bg-surface-dark/40 text-primary/80 font-semibold text-xs shrink-0 hover:border-primary transition-all">
-                        Canceladas
-                    </button>
                 </div>
             </header>
 
             <section className="flex-1 px-6 pb-24">
-                <div className="mb-8">
-                    <div className="flex justify-between items-center mb-4 sticky top-12 py-2 bg-background-light dark:bg-background-dark z-10">
-                        <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/60">Próximos Pagos</h2>
-                    </div>
+                {subscriptions.length === 0 ? (
+                    <p className="text-center text-slate-500 mt-10">No hay suscripciones activas.</p>
+                ) : (
                     <div className="space-y-3">
                          {subscriptions.map((sub) => (
                             <div key={sub.id} className="flex items-center justify-between p-4 -mx-2 rounded-xl bg-surface-dark border border-white/5 active:bg-surface-dark/80 transition-colors">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-xl ${sub.color} border border-white/10 flex items-center justify-center overflow-hidden relative`}>
-                                        {sub.isIcon ? (
-                                             <span className="material-icons-round">{sub.icon}</span>
-                                        ) : sub.isText ? (
-                                            sub.icon
-                                        ) : (
-                                            <img src={sub.icon} alt={sub.name} className="w-full h-full object-cover opacity-80" />
-                                        )}
+                                    <div className={`w-12 h-12 rounded-xl ${sub.color || 'bg-primary/10 text-primary'} border border-white/10 flex items-center justify-center overflow-hidden relative`}>
+                                         <span className="material-icons-round">{sub.icon || 'star'}</span>
                                     </div>
                                     <div>
                                         <h3 className="font-bold text-sm text-white">{sub.name}</h3>
@@ -89,43 +87,80 @@ const Subscriptions = () => {
                                 <div className="text-right">
                                     <span className="block font-bold text-sm text-white">${sub.amount}</span>
                                     <span className="text-[10px] font-medium text-slate-500 mt-1">{sub.date}</span>
+                                    <button onClick={() => removeSubscription(sub.id)} className="block text-[10px] text-red-500 mt-1 ml-auto">Borrar</button>
                                 </div>
                             </div>
                         ))}
                     </div>
-                </div>
-
-                <div className="mb-8">
-                    <div className="flex justify-between items-center mb-4 sticky top-12 py-2 bg-background-light dark:bg-background-dark z-10">
-                        <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/60">Otros Servicios</h2>
-                    </div>
-                    <div className="space-y-3">
-                        {otherServices.map((sub) => (
-                            <div key={sub.id} className="flex items-center justify-between p-4 -mx-2 rounded-xl bg-surface-dark border border-white/5 active:bg-surface-dark/80 transition-colors">
-                                <div className="flex items-center gap-4">
-                                     <div className={`w-12 h-12 rounded-xl ${sub.color} border border-white/10 flex items-center justify-center overflow-hidden relative`}>
-                                        {sub.isIcon ? (
-                                             <span className="material-icons-round">{sub.icon}</span>
-                                        ) : sub.isText ? (
-                                            sub.icon
-                                        ) : (
-                                            <img src={sub.icon} alt={sub.name} className="w-full h-full object-cover opacity-80" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <h3 className="font-bold text-sm text-white">{sub.name}</h3>
-                                        <p className="text-xs text-slate-400">{sub.category}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <span className="block font-bold text-sm text-white">${sub.amount.toFixed(2)}</span>
-                                    <span className="text-[10px] font-medium text-slate-500 mt-1">{sub.date}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+                )}
             </section>
+
+            {/* Add Subscription Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md bg-surface-dark rounded-2xl p-6 border border-primary/20">
+                        <h2 className="text-xl font-bold text-white mb-4">Nueva Suscripción</h2>
+                        <form onSubmit={handleAddSubscription} className="space-y-4">
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Nombre</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Monto</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Ciclo</label>
+                                <select
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={cycle}
+                                    onChange={(e) => setCycle(e.target.value)}
+                                >
+                                    <option value="Mensual">Mensual</option>
+                                    <option value="Anual">Anual</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Fecha de pago (ej: 5 Nov)</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 py-3 rounded-xl border border-white/10 text-slate-300 font-bold"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold"
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
