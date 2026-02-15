@@ -23,6 +23,9 @@ export const DataProvider = ({ children }) => {
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // UI State
+  const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+
   // Load initial data
   useEffect(() => {
     const loadData = async () => {
@@ -99,6 +102,10 @@ export const DataProvider = ({ children }) => {
     setFiles([]);
   };
 
+  // --- UI Helpers ---
+  const openTransactionModal = () => setIsTransactionModalOpen(true);
+  const closeTransactionModal = () => setIsTransactionModalOpen(false);
+
   // --- Derived State (Calculations) ---
   const income = transactions
     .filter(t => t.type === 'income')
@@ -124,7 +131,8 @@ export const DataProvider = ({ children }) => {
         income,
         expenses,
         netWorth
-      }
+      },
+      isTransactionModalOpen, openTransactionModal, closeTransactionModal
     }}>
       {children}
     </DataContext.Provider>
