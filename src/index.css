@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100;
+  }
+}
+
+.glass-effect {
+  backdrop-filter: blur(8px);
+  background-color: rgba(45, 42, 22, 0.7);
+}
+
+.ios-blur {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.gold-gradient {
+    background: linear-gradient(135deg, #f2d00d 0%, #b89b06 100%);
+}
+
+.bottom-glow {
+    background: radial-gradient(circle at bottom, rgba(242, 208, 13, 0.15) 0%, rgba(10, 10, 5, 0) 70%);
+}
