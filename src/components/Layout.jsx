@@ -1,10 +1,13 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useData } from '../context/DataContext';
+import TransactionModal from './TransactionModal';
 
 const Layout = ({ children }) => {
   const { t } = useTranslation();
   const location = useLocation();
+  const { openTransactionModal } = useData();
 
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
@@ -29,7 +32,10 @@ const Layout = ({ children }) => {
             </NavLink>
 
             <div className="flex justify-center items-end flex-1 h-full pb-4 relative z-40 pointer-events-none">
-                <button className="w-14 h-14 rounded-full bg-primary text-background-dark shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform -translate-y-6 pointer-events-auto">
+                <button
+                    onClick={openTransactionModal}
+                    className="w-14 h-14 rounded-full bg-primary text-background-dark shadow-lg shadow-primary/30 flex items-center justify-center active:scale-95 transition-transform -translate-y-6 pointer-events-auto"
+                >
                     <span className="material-icons-round text-3xl">add</span>
                 </button>
             </div>
@@ -44,6 +50,9 @@ const Layout = ({ children }) => {
             </NavLink>
         </nav>
         <div className="fixed bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/20 rounded-full z-40 pointer-events-none"></div>
+
+        {/* Global Transaction Modal */}
+        <TransactionModal />
     </div>
   );
 };
