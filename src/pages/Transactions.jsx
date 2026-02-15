@@ -1,103 +1,124 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { useData } from '../context/DataContext';
 
 const Transactions = () => {
-    // Mock Data
-    const [transactions] = useState([
-        { id: 1, title: 'Apple Store', date: 'Hoy, 24 de Octubre', time: '14:32', category: 'Tecnología', amount: -89.00, icon: 'shopping_bag', isIncome: false, day: 'Hoy, 24 de Octubre' },
-        { id: 2, title: 'Nómina GentleCorp', date: 'Hoy, 24 de Octubre', time: '09:00', category: 'Salario', amount: 4250.00, icon: 'payments', isIncome: true, day: 'Hoy, 24 de Octubre' },
-        { id: 3, title: 'The Golden Grill', date: 'Hoy, 24 de Octubre', time: '21:15', category: 'Cena', amount: -31.50, icon: 'restaurant', isIncome: false, day: 'Hoy, 24 de Octubre' },
-        { id: 4, title: 'Uber', date: 'Ayer, 23 de Octubre', time: '18:45', category: 'Transporte', amount: -15.20, icon: 'directions_car', isIncome: false, day: 'Ayer, 23 de Octubre' },
-        { id: 5, title: 'Rendimientos Crypto', date: 'Ayer, 23 de Octubre', time: '02:00', category: 'Inversión', amount: 124.80, icon: 'savings', isIncome: true, day: 'Ayer, 23 de Octubre' },
-        { id: 6, title: 'Ritz-Carlton NY', date: '22 de Octubre', time: '11:30', category: 'Viaje', amount: -240.00, icon: 'hotel', isIncome: false, day: '22 de Octubre' },
-    ]);
+    const { transactions, addTransaction, removeTransaction } = useData();
+    const [filter, setFilter] = useState('all'); // all, income, expense
+    const [showModal, setShowModal] = useState(false);
 
-    // Group transactions by day
-    const groupedTransactions = transactions.reduce((groups, transaction) => {
-        const day = transaction.day;
-        if (!groups[day]) {
-            groups[day] = [];
-        }
-        groups[day].push(transaction);
+    // Form State
+    const [title, setTitle] = useState('');
+    const [amount, setAmount] = useState('');
+    const [type, setType] = useState('expense');
+    const [category, setCategory] = useState('');
+
+    const handleAddTransaction = async (e) => {
+        e.preventDefault();
+        if (!title || !amount) return;
+
+        await addTransaction({
+            title,
+            amount: parseFloat(amount),
+            type,
+            category,
+            date: new Date().toISOString(), // Store simplified date for now
+            icon: type === 'income' ? 'payments' : 'shopping_bag' // Simplified icon logic
+        });
+
+        // Reset and close
+        setTitle('');
+        setAmount('');
+        setType('expense');
+        setCategory('');
+        setShowModal(false);
+    };
+
+    // Filter logic
+    const filteredTransactions = transactions.filter(t => {
+        if (filter === 'all') return true;
+        return t.type === filter;
+    });
+
+    // Group by Date (Simplified for now, assuming ISO string)
+    const groupedTransactions = filteredTransactions.reduce((groups, transaction) => {
+        const dateObj = new Date(transaction.id); // using ID timestamp as date for simplicity if date field missing
+        const dateStr = dateObj.toLocaleDateString();
+        if (!groups[dateStr]) groups[dateStr] = [];
+        groups[dateStr].push(transaction);
         return groups;
     }, {});
 
-    const dayTotals = Object.keys(groupedTransactions).reduce((totals, day) => {
-        totals[day] = groupedTransactions[day].reduce((sum, t) => sum + t.amount, 0);
-        return totals;
-    }, {});
-
-
     return (
-        <div className="flex flex-col h-full min-h-screen">
+        <div className="flex flex-col h-full min-h-screen relative">
             <header className="px-6 pt-8 pb-4 sticky top-0 bg-background-light dark:bg-background-dark z-20">
                 <div className="flex justify-between items-center mb-6">
                     <NavLink to="/" className="p-2 -ml-2 rounded-full active:bg-primary/10 transition-colors">
                         <span className="material-icons-round text-primary">arrow_back_ios_new</span>
                     </NavLink>
                     <div className="flex gap-4">
-                        <button className="p-2 rounded-full bg-primary/10 text-primary">
-                            <span className="material-icons-round">file_download</span>
-                        </button>
-                        <button className="p-2 rounded-full bg-primary/10 text-primary">
-                            <span className="material-icons-round">more_horiz</span>
+                        <button onClick={() => setShowModal(true)} className="p-2 rounded-full bg-primary/10 text-primary">
+                            <span className="material-icons-round">add</span>
                         </button>
                     </div>
                 </div>
                 <h1 className="text-3xl font-extrabold tracking-tight mb-6">Transacciones</h1>
 
-                {/* Search Bar */}
-                <div className="relative group mb-6">
-                    <span className="material-icons-round absolute left-4 top-1/2 -translate-y-1/2 text-primary/60 group-focus-within:text-primary transition-colors">search</span>
-                    <input
-                        type="text"
-                        placeholder="Buscar movimientos..."
-                        className="w-full bg-surface-dark/50 dark:bg-surface-dark border-primary/20 focus:border-primary focus:ring-1 focus:ring-primary rounded-xl py-3.5 pl-12 pr-4 text-sm transition-all outline-none text-white placeholder-slate-500"
-                    />
-                </div>
-
                 {/* Filters */}
                 <div className="flex gap-3 overflow-x-auto hide-scrollbar pb-2">
-                    <button className="px-5 py-2 rounded-full bg-primary text-background-dark font-bold text-xs flex items-center gap-1 shrink-0">
-                        <span className="material-icons-round text-sm">tune</span> Todos
+                    <button
+                        onClick={() => setFilter('all')}
+                        className={`px-5 py-2 rounded-full font-bold text-xs flex items-center gap-1 shrink-0 transition-all ${filter === 'all' ? 'bg-primary text-background-dark' : 'border border-primary/30 bg-surface-dark/40 text-primary/80'}`}
+                    >
+                        Todos
                     </button>
-                    <button className="px-5 py-2 rounded-full border border-primary/30 dark:border-primary/20 bg-surface-dark/40 text-primary/80 font-semibold text-xs shrink-0 hover:border-primary transition-all">
+                    <button
+                        onClick={() => setFilter('income')}
+                        className={`px-5 py-2 rounded-full font-bold text-xs flex items-center gap-1 shrink-0 transition-all ${filter === 'income' ? 'bg-primary text-background-dark' : 'border border-primary/30 bg-surface-dark/40 text-primary/80'}`}
+                    >
                         Ingresos
                     </button>
-                    <button className="px-5 py-2 rounded-full border border-primary/30 dark:border-primary/20 bg-surface-dark/40 text-primary/80 font-semibold text-xs shrink-0 hover:border-primary transition-all">
+                    <button
+                        onClick={() => setFilter('expense')}
+                        className={`px-5 py-2 rounded-full font-bold text-xs flex items-center gap-1 shrink-0 transition-all ${filter === 'expense' ? 'bg-primary text-background-dark' : 'border border-primary/30 bg-surface-dark/40 text-primary/80'}`}
+                    >
                         Gastos
-                    </button>
-                    <button className="px-5 py-2 rounded-full border border-primary/30 dark:border-primary/20 bg-surface-dark/40 text-primary/80 font-semibold text-xs shrink-0 hover:border-primary transition-all">
-                        Octubre
                     </button>
                 </div>
             </header>
 
             <section className="flex-1 px-6 pb-24">
-                {Object.keys(groupedTransactions).map((day) => (
-                    <div key={day} className="mb-8">
+                {Object.keys(groupedTransactions).length === 0 && (
+                    <p className="text-center text-slate-500 mt-10">No hay transacciones.</p>
+                )}
+
+                {Object.keys(groupedTransactions).map((date) => (
+                    <div key={date} className="mb-8">
                         <div className="flex justify-between items-center mb-4 sticky top-12 py-2 bg-background-light dark:bg-background-dark z-10">
-                            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/60">{day}</h2>
-                            <span className={`text-[11px] font-medium ${dayTotals[day] >= 0 ? 'text-primary' : 'text-slate-500'}`}>
-                                {dayTotals[day] > 0 ? '+' : ''}${dayTotals[day].toLocaleString()}
-                            </span>
+                            <h2 className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/60">{date}</h2>
                         </div>
                         <div className="space-y-1">
-                            {groupedTransactions[day].map((tx) => (
-                                <div key={tx.id} className="flex items-center justify-between p-4 -mx-2 rounded-xl active:bg-surface-dark/80 transition-colors">
+                            {groupedTransactions[date].map((tx) => (
+                                <div key={tx.id} className="group relative flex items-center justify-between p-4 -mx-2 rounded-xl active:bg-surface-dark/80 transition-colors">
                                     <div className="flex items-center gap-4">
                                         <div className="w-12 h-12 rounded-xl bg-primary/10 border border-primary/10 flex items-center justify-center">
                                             <span className="material-icons-round text-primary">{tx.icon}</span>
                                         </div>
                                         <div>
                                             <h3 className="font-bold text-sm">{tx.title}</h3>
-                                            <p className="text-xs text-slate-500">{tx.category} • {tx.time}</p>
+                                            <p className="text-xs text-slate-500">{tx.category}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <span className={`font-bold text-sm ${tx.isIncome ? 'text-primary' : 'text-slate-100'}`}>
-                                            {tx.isIncome ? '+' : '-'}${Math.abs(tx.amount).toLocaleString()}
+                                        <span className={`font-bold text-sm ${tx.type === 'income' ? 'text-primary' : 'text-slate-100'}`}>
+                                            {tx.type === 'income' ? '+' : '-'}${Math.abs(tx.amount).toLocaleString()}
                                         </span>
+                                        <button
+                                            onClick={() => removeTransaction(tx.id)}
+                                            className="ml-2 text-red-500 text-xs hover:underline"
+                                        >
+                                            Borrar
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -105,6 +126,73 @@ const Transactions = () => {
                     </div>
                 ))}
             </section>
+
+            {/* Add Transaction Modal */}
+            {showModal && (
+                <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="w-full max-w-md bg-surface-dark rounded-2xl p-6 border border-primary/20">
+                        <h2 className="text-xl font-bold text-white mb-4">Nueva Transacción</h2>
+                        <form onSubmit={handleAddTransaction} className="space-y-4">
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Título</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={title}
+                                    onChange={(e) => setTitle(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Monto</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={amount}
+                                    onChange={(e) => setAmount(e.target.value)}
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Tipo</label>
+                                <select
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={type}
+                                    onChange={(e) => setType(e.target.value)}
+                                >
+                                    <option value="expense">Gasto</option>
+                                    <option value="income">Ingreso</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs uppercase text-primary/70 mb-1">Categoría</label>
+                                <input
+                                    type="text"
+                                    className="w-full bg-background-dark border border-primary/20 rounded-lg p-3 text-white focus:border-primary outline-none"
+                                    value={category}
+                                    onChange={(e) => setCategory(e.target.value)}
+                                />
+                            </div>
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowModal(false)}
+                                    className="flex-1 py-3 rounded-xl border border-white/10 text-slate-300 font-bold"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-3 rounded-xl bg-primary text-background-dark font-bold"
+                                >
+                                    Guardar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
