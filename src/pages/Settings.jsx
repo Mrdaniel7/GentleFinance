@@ -2,11 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
+import { getFiles, saveFile } from '../services/storage';
 
 const Settings = () => {
     const { files, addFile, resetData } = useData();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
+
+    // API Key State (Persisted in localStorage for this frontend-only demo)
+    const [finnhubKey, setFinnhubKey] = useState('');
+
+    useEffect(() => {
+        const savedKey = localStorage.getItem('finnhub_key');
+        if (savedKey) setFinnhubKey(savedKey);
+    }, []);
+
+    const handleSaveKey = () => {
+        localStorage.setItem('finnhub_key', finnhubKey);
+        alert('API Key guardada correctamente. Recarga la página para aplicar cambios.');
+    };
 
     const handleFileUpload = async (event) => {
         const file = event.target.files[0];
@@ -18,8 +32,6 @@ const Settings = () => {
             type: file.type,
             size: file.size,
             lastModified: file.lastModified,
-            // In a real app, you might store the blob or base64 here
-            // content: file
         };
 
         await addFile(newFile);
@@ -44,11 +56,11 @@ const Settings = () => {
                     <span className="material-icons-round text-primary">arrow_back_ios_new</span>
                 </NavLink>
                 <h1 className="text-lg font-bold tracking-tight">Configuración</h1>
-                <div className="w-10 h-10"></div> {/* Spacer for symmetry */}
+                <div className="w-10 h-10"></div>
             </header>
 
             <main className="flex-grow px-6 pb-24">
-                 {/* Profile Summary Section */}
+                 {/* Profile Summary */}
                 <section className="flex flex-col items-center py-8">
                     <div className="relative">
                         <div className="w-32 h-32 rounded-full p-1 border-2 border-primary overflow-hidden shadow-[0_0_20px_rgba(242,208,13,0.2)]">
@@ -58,18 +70,35 @@ const Settings = () => {
                                 className="w-full h-full object-cover rounded-full"
                             />
                         </div>
-                        <div className="absolute bottom-1 right-1 bg-primary text-background-dark w-8 h-8 rounded-full flex items-center justify-center border-4 border-background-dark">
-                            <span className="material-icons-round text-sm">edit</span>
-                        </div>
                     </div>
                     <div className="mt-4 text-center">
                         <h2 className="text-2xl font-extrabold text-gray-900 dark:text-white">{user?.name || "Usuario"}</h2>
-                        <p className="text-primary/80 font-medium text-sm tracking-widest uppercase mt-1">Miembro Gold</p>
                     </div>
                 </section>
 
                 <div className="space-y-8">
-                     {/* Category: Documentos (File Handling) */}
+                     {/* Category: API Configuration */}
+                     <section>
+                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Configuración API</h3>
+                        <div className="bg-surface-dark/20 rounded-xl p-4 border border-primary/10">
+                            <label className="block text-xs uppercase text-primary/70 mb-2">Finnhub API Key (Acciones)</label>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    className="flex-1 bg-background-dark border border-primary/20 rounded-lg p-2 text-white text-sm focus:border-primary outline-none"
+                                    value={finnhubKey}
+                                    onChange={(e) => setFinnhubKey(e.target.value)}
+                                    placeholder="Ingresa tu clave..."
+                                />
+                                <button onClick={handleSaveKey} className="px-4 py-2 bg-primary/20 text-primary rounded-lg text-xs font-bold">
+                                    Guardar
+                                </button>
+                            </div>
+                            <p className="text-[10px] text-slate-500 mt-2">Necesaria para ver datos de acciones en tiempo real.</p>
+                        </div>
+                    </section>
+
+                     {/* Category: Documentos */}
                      <section>
                         <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Documentos</h3>
                         <div className="bg-surface-dark/20 rounded-xl p-4 border border-primary/10">
@@ -77,7 +106,6 @@ const Settings = () => {
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                                     <span className="material-icons-round text-primary text-3xl mb-2">cloud_upload</span>
                                     <p className="mb-2 text-sm text-gray-400"><span className="font-semibold">Click para subir</span></p>
-                                    <p className="text-xs text-gray-500">PDF, PNG, JPG (MAX. 5MB)</p>
                                 </div>
                                 <input type="file" className="hidden" onChange={handleFileUpload} />
                             </label>
@@ -86,10 +114,7 @@ const Settings = () => {
                                 <div className="mt-4 space-y-2">
                                     {files.map((file) => (
                                         <div key={file.id} className="flex items-center justify-between p-2 bg-background-dark rounded border border-primary/10">
-                                            <div className="flex items-center gap-2 overflow-hidden">
-                                                <span className="material-icons-round text-primary/70 text-sm">description</span>
-                                                <span className="text-xs text-slate-300 truncate max-w-[150px]">{file.name}</span>
-                                            </div>
+                                            <span className="text-xs text-slate-300 truncate max-w-[150px]">{file.name}</span>
                                             <span className="text-[10px] text-slate-500">{(file.size / 1024).toFixed(1)} KB</span>
                                         </div>
                                     ))}
@@ -98,107 +123,7 @@ const Settings = () => {
                         </div>
                     </section>
 
-                     {/* Category: Perfil */}
-                    <section>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Perfil</h3>
-                        <div className="space-y-0.5">
-                            <button className="w-full flex items-center justify-between py-4 px-2 hover:bg-primary/5 transition-colors rounded">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">person_outline</span>
-                                    <span className="font-medium">Información Personal</span>
-                                </div>
-                                <span className="material-icons-round text-primary text-xl">chevron_right</span>
-                            </button>
-                             <div className="h-px w-full bg-primary/10 mx-2"></div>
-                            <button className="w-full flex items-center justify-between py-4 px-2 hover:bg-primary/5 transition-colors rounded">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">account_balance_wallet</span>
-                                    <span className="font-medium">Cuentas Vinculadas</span>
-                                </div>
-                                <span className="material-icons-round text-primary text-xl">chevron_right</span>
-                            </button>
-                        </div>
-                    </section>
-
-                    {/* Category: Seguridad */}
-                    <section>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Seguridad</h3>
-                        <div className="space-y-0.5">
-                             <div className="w-full flex items-center justify-between py-4 px-2">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">fingerprint</span>
-                                    <span className="font-medium">Biometría (FaceID)</span>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                </label>
-                            </div>
-                            <div className="h-px w-full bg-primary/10 mx-2"></div>
-                            <button className="w-full flex items-center justify-between py-4 px-2 hover:bg-primary/5 transition-colors rounded">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">lock_open</span>
-                                    <span className="font-medium">Cambiar Contraseña</span>
-                                </div>
-                                <span className="material-icons-round text-primary text-xl">chevron_right</span>
-                            </button>
-                        </div>
-                    </section>
-
-                     {/* Category: Notificaciones */}
-                     <section>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Notificaciones</h3>
-                        <div className="space-y-0.5">
-                            <div className="w-full flex items-center justify-between py-4 px-2">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">notifications_none</span>
-                                    <span className="font-medium">Alertas Push</span>
-                                </div>
-                                <label className="relative inline-flex items-center cursor-pointer">
-                                    <input type="checkbox" defaultChecked className="sr-only peer" />
-                                    <div className="w-11 h-6 bg-gray-300 dark:bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                                </label>
-                            </div>
-                            <div className="h-px w-full bg-primary/10 mx-2"></div>
-                            <button className="w-full flex items-center justify-between py-4 px-2 hover:bg-primary/5 transition-colors rounded">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">mail_outline</span>
-                                    <span className="font-medium">Reportes Mensuales</span>
-                                </div>
-                                <span className="material-icons-round text-primary text-xl">chevron_right</span>
-                            </button>
-                        </div>
-                    </section>
-
-                    {/* Category: Preferencias */}
-                    <section>
-                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Preferencias</h3>
-                        <div className="space-y-0.5">
-                            <button className="w-full flex items-center justify-between py-4 px-2 hover:bg-primary/5 transition-colors rounded">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">payments</span>
-                                    <span className="font-medium">Moneda</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-primary font-semibold text-sm">USD ($)</span>
-                                    <span className="material-icons-round text-primary text-xl">chevron_right</span>
-                                </div>
-                            </button>
-                            <div className="h-px w-full bg-primary/10 mx-2"></div>
-                            <button className="w-full flex items-center justify-between py-4 px-2 hover:bg-primary/5 transition-colors rounded">
-                                <div className="flex items-center gap-4">
-                                    <span className="material-icons-round text-primary/70">language</span>
-                                    <span className="font-medium">Idioma</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-primary font-semibold text-sm">Español</span>
-                                    <span className="material-icons-round text-primary text-xl">chevron_right</span>
-                                </div>
-                            </button>
-                        </div>
-                    </section>
-
-                    {/* Actions Button */}
+                    {/* Actions */}
                     <section className="pt-6 pb-12 space-y-4">
                         <button onClick={handleReset} className="w-full py-4 border border-red-500 text-red-500 font-bold rounded-full hover:bg-red-500/10 transition-all duration-300 flex items-center justify-center gap-2">
                             <span className="material-icons-round">delete_forever</span>
@@ -209,10 +134,6 @@ const Settings = () => {
                             <span className="material-icons-round group-hover:translate-x-1 transition-transform">logout</span>
                             Cerrar Sesión
                         </button>
-
-                        <div className="mt-8 text-center">
-                            <p className="text-[10px] text-gray-500 dark:text-gray-600 uppercase tracking-[0.3em]">GentleFinance Premium v2.4.1</p>
-                        </div>
                     </section>
                 </div>
             </main>
