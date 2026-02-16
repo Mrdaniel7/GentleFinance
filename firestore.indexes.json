@@ -1,0 +1,44 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "userId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "date", "order": "DESCENDING"},
+        {"fieldPath": "categoryId", "order": "ASCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "accountId", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "transactions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "isRecurring", "order": "ASCENDING"},
+        {"fieldPath": "date", "order": "DESCENDING"}
+      ]
+    },
+    {
+      "collectionGroup": "budgets",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {"fieldPath": "month", "order": "DESCENDING"}
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

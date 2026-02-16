@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const Signup = () => {
-    const { login } = useAuth(); // Assuming login works for signup too for simplicity in this mock
+    const { t } = useTranslation();
+    const { signup } = useAuth();
     const navigate = useNavigate();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
@@ -14,16 +16,16 @@ const Signup = () => {
         e.preventDefault();
         setError('');
         if (!email || !password || !name) {
-            setError('Por favor complete todos los campos');
+            setError(t('auth.fillFields'));
             return;
         }
 
         try {
             // In a real app this would call a signup endpoint
-            await login(email, password);
+            await signup(name, email, password);
             navigate('/');
         } catch (err) {
-            setError('Error al crear cuenta');
+            setError(t('auth.signupError'));
         }
     };
 
@@ -46,7 +48,7 @@ const Signup = () => {
 
                 {/* Title Section */}
                 <div className="mb-8">
-                    <h2 className="text-3xl font-semibold text-white">Crear Cuenta Premium</h2>
+                    <h2 className="text-3xl font-semibold text-white">{t('auth.signup')} Premium</h2>
                     <p className="text-primary/50 text-sm mt-2">Únete a la plataforma financiera más exclusiva.</p>
                 </div>
 
@@ -101,7 +103,7 @@ const Signup = () => {
 
                     {/* CTA Button */}
                     <button type="submit" className="w-full block text-center gold-gradient text-background-dark font-bold py-4 rounded-xl mt-4 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
-                        Crear Cuenta
+                        {t('auth.signup')}
                     </button>
                 </form>
 

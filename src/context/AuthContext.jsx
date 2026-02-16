@@ -1,5 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { getUserData, saveUserData } from '../services/storage';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import {
+  onAuthStateChanged,
+  signIn,
+  signOutUser,
+  signUp
+} from '../services/firebaseAuth';
+import { ensureUserProfile, getUserProfile, updateUserProfile as updateProfileDoc } from '../services/firebaseData';
 
 const AuthContext = createContext();
 
@@ -10,37 +16,54 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const savedUser = await getUserData('currentUser');
-      if (savedUser) {
-        setUser(savedUser);
+    const unsubscribe = onAuthStateChanged(async (sessionUser) => {
+      if (!sessionUser) {
+        setUser(null);
+        setLoading(false);
+        return;
       }
+
+      await ensureUserProfile(sessionUser);
+      const profile = await getUserProfile(sessionUser.uid);
+
+      setUser({
+        uid: sessionUser.uid,
+        email: sessionUser.email,
+        name: profile?.name || sessionUser.name,
+        avatar: profile?.avatar || ''
+      });
+
       setLoading(false);
-    };
-    loadUser();
+    });
+
+    return unsubscribe;
   }, []);
 
   const login = async (email, password) => {
-    // Mock login logic - in a real app this would verify credentials
-    const userData = { email, name: email.split('@')[0], avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBgE3XEPMRpEGu98BK90tXD6sxcHw5D1r8qRaJXm986SQP2OC2kPhg-p4_jxOALzRn-wqTlSEneJk26r7BL3RO_XX7bgFFhXpnGxLjgEkeBaukfjZq2QhLaHQjcEKuOsu0Q8d6Pao92p-NrPGdbsuzj5bkKL80eKnG-alnXQhwLLtHQRcMjlpL7xW_1yF3ewIO80hq8YWWNrQx2gJFBojngckOmm7VTR92_SWQ0ZHlwBtKmhElZNGH_z1MmWZHAXpzd7Zn6qP2c7Y8' };
-    await saveUserData('currentUser', userData);
-    setUser(userData);
-    return true;
+    await signIn(email, password);
+  };
+
+  const signup = async (name, email, password) => {
+    await signUp(name, email, password);
   };
 
   const logout = async () => {
-    await saveUserData('currentUser', null);
-    setUser(null);
+    await signOutUser();
   };
 
   const updateProfile = async (newData) => {
-    const updatedUser = { ...user, ...newData };
-    await saveUserData('currentUser', updatedUser);
-    setUser(updatedUser);
+    if (!user?.uid) return;
+
+    const profilePayload = {};
+    if (newData.name) profilePayload.name = newData.name;
+    if (newData.avatar) profilePayload.avatar = newData.avatar;
+
+    await updateProfileDoc(user.uid, profilePayload);
+    setUser((prev) => ({ ...prev, ...profilePayload }));
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, updateProfile, loading }}>
+    <AuthContext.Provider value={{ user, login, signup, logout, updateProfile, loading }}>
       {children}
     </AuthContext.Provider>
   );

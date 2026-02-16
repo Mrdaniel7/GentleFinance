@@ -1,16 +1,59 @@
-# React + Vite
+# GentleFinance
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación de finanzas personales con React + Vite, autenticación real con Firebase, persistencia en Firestore y carga de archivos a Firebase Storage.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js 20+
+- Proyecto Firebase configurado (Auth + Firestore + Storage)
 
-## React Compiler
+## Configuración
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Instala dependencias:
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+2. (Opcional) Crea `.env` para sobreescribir la configuración de Firebase:
+
+```bash
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+VITE_FIREBASE_MEASUREMENT_ID=...
+```
+
+Si no defines estas variables, la app usa la configuración integrada del proyecto `gentlefinances-c9b79`.
+
+3. Ejecuta en local:
+
+```bash
+npm run dev
+```
+
+## Reglas e índices de Firebase
+
+Este repositorio incluye:
+
+- `firestore.rules`
+- `firestore.indexes.json`
+- `storage.rules`
+- `firebase.json`
+
+Para desplegar:
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes,storage
+```
+
+## Funcionalidades implementadas
+
+- Registro e inicio de sesión reales con Firebase Auth.
+- Datos de usuario aislados por `userId` en Firestore (`transactions`, `accounts`, `subscriptions`).
+- Perfil de usuario en `users/{uid}`.
+- Upload de archivos a `users/{uid}/...` en Firebase Storage con metadatos en `users/{uid}/files`.
+- Selector de idioma ES/EN persistido con `i18next`.
