@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useData } from '../context/DataContext';
 import { useAuth } from '../context/AuthContext';
-import { getFiles, saveFile } from '../services/storage';
 
 const Settings = () => {
+    const { t, i18n } = useTranslation();
     const { files, addFile, resetData } = useData();
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -26,15 +27,7 @@ const Settings = () => {
         const file = event.target.files[0];
         if (!file) return;
 
-        const newFile = {
-            id: Date.now(),
-            name: file.name,
-            type: file.type,
-            size: file.size,
-            lastModified: file.lastModified,
-        };
-
-        await addFile(newFile);
+        await addFile(file);
     };
 
     const handleLogout = async () => {
@@ -55,7 +48,7 @@ const Settings = () => {
                 <NavLink to="/" className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-primary/10 transition-colors">
                     <span className="material-icons-round text-primary">arrow_back_ios_new</span>
                 </NavLink>
-                <h1 className="text-lg font-bold tracking-tight">Configuración</h1>
+                <h1 className="text-lg font-bold tracking-tight">{t('settings.title')}</h1>
                 <div className="w-10 h-10"></div>
             </header>
 
@@ -77,6 +70,16 @@ const Settings = () => {
                 </section>
 
                 <div className="space-y-8">
+
+                    <section>
+                        <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">{t('settings.language')}</h3>
+                        <div className="bg-surface-dark/20 rounded-xl p-4 border border-primary/10">
+                            <div className="flex gap-2">
+                                <button onClick={() => i18n.changeLanguage('es')} className={`px-4 py-2 rounded-lg text-xs font-bold ${i18n.language.startsWith('es') ? 'bg-primary text-background-dark' : 'bg-primary/20 text-primary'}`}>Español</button>
+                                <button onClick={() => i18n.changeLanguage('en')} className={`px-4 py-2 rounded-lg text-xs font-bold ${i18n.language.startsWith('en') ? 'bg-primary text-background-dark' : 'bg-primary/20 text-primary'}`}>English</button>
+                            </div>
+                        </div>
+                    </section>
                      {/* Category: API Configuration */}
                      <section>
                         <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] mb-4 ml-2">Configuración API</h3>

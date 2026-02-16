@@ -3,22 +3,22 @@ import { initReactI18next } from 'react-i18next';
 import en from './locales/en';
 import es from './locales/es';
 
+const language = localStorage.getItem('language') || 'es';
+
 i18n
   .use(initReactI18next)
   .init({
     resources: {
-      en: {
-        translation: en
-      },
-      es: {
-        translation: es
-      }
+      en: { translation: en },
+      es: { translation: es }
     },
-    lng: "es", // idioma por defecto
-    fallbackLng: "en",
-    interpolation: {
-      escapeValue: false
-    }
+    lng: language,
+    fallbackLng: 'en',
+    interpolation: { escapeValue: false }
   });
+
+i18n.on('languageChanged', (lng) => {
+  localStorage.setItem('language', lng);
+});
 
 export default i18n;

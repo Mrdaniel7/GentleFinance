@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from 'react-i18next';
 
 const Login = () => {
+    const { t } = useTranslation();
     const { login } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');
@@ -13,7 +15,7 @@ const Login = () => {
         e.preventDefault();
         setError('');
         if (!email || !password) {
-            setError('Por favor complete todos los campos');
+            setError(t('auth.fillFields'));
             return;
         }
 
@@ -21,7 +23,7 @@ const Login = () => {
             await login(email, password);
             navigate('/');
         } catch (err) {
-            setError('Error al iniciar sesión');
+            setError(t('auth.loginError'));
         }
     };
 
@@ -81,7 +83,7 @@ const Login = () => {
                     </div>
 
                     <button type="submit" className="block w-full text-center gold-gradient text-background-dark font-bold py-4 rounded-lg shadow-lg shadow-primary/10 hover:brightness-110 active:scale-[0.98] transition-all duration-200 uppercase tracking-widest text-sm">
-                        Iniciar Sesión
+                        {t('auth.login')}
                     </button>
                 </form>
 
